@@ -1,0 +1,1434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>fair split</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=IBM+Plex+Mono:wght@400;500&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    :root {
+      --bg: #fafaf7;
+      --paper: #ffffff;
+      --ink: #1c1c1a;
+      --muted: #6b6b66;
+      --line: #e8e6e0;
+      --accent: #1c1c1a;
+      --accent-hover: #333330;
+      --warn-bg: #fef9e7;
+      --warn-border: #e8d48a;
+      --warn-ink: #7a5c00;
+      --error-bg: #fef2f2;
+      --error-border: #f5c4c4;
+      --error-ink: #991b1b;
+      --low-conf: #ea580c;
+      --low-conf-bg: #fff7ed;
+      --radius: 10px;
+      --shadow: 0 1px 3px rgba(28, 28, 26, 0.06), 0 4px 16px rgba(28, 28, 26, 0.04);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "DM Sans", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.5;
+      min-height: 100vh;
+      padding: 2.5rem 1.25rem 4rem;
+    }
+
+    .wrap {
+      max-width: 680px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 2.25rem;
+    }
+
+    .header h1 {
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      font-variant: small-caps;
+      color: var(--ink);
+      display: inline-block;
+      padding-bottom: 0.35rem;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .header p {
+      margin-top: 0.65rem;
+      font-size: 0.875rem;
+      color: var(--muted);
+    }
+
+    .card {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+    }
+
+    .upload-zone {
+      border: 1.5px dashed var(--line);
+      border-radius: var(--radius);
+      padding: 2rem 1.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      background: var(--bg);
+    }
+
+    .upload-zone:hover,
+    .upload-zone.dragover {
+      border-color: #b8b6ae;
+      background: #f5f4f0;
+    }
+
+    .upload-zone input {
+      display: none;
+    }
+
+    .upload-zone .label {
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .upload-zone .hint {
+      font-size: 0.75rem;
+      color: #9a9a94;
+      margin-top: 0.35rem;
+    }
+
+    .thumb-wrap {
+      margin-top: 1rem;
+      display: none;
+      cursor: zoom-in;
+    }
+
+    .thumb-wrap.visible {
+      display: block;
+    }
+
+    .thumb-wrap img {
+      max-width: 100%;
+      max-height: 220px;
+      border-radius: 6px;
+      border: 1px solid var(--line);
+      object-fit: contain;
+      display: block;
+      margin: 0 auto;
+      transition: border-color 0.2s;
+    }
+
+    .thumb-wrap:hover img {
+      border-color: #b8b6ae;
+    }
+
+    .thumb-hint {
+      margin-top: 0.45rem;
+      font-size: 0.72rem;
+      color: #9a9a94;
+      text-align: center;
+    }
+
+    .receipt-lightbox {
+      position: fixed;
+      inset: 0;
+      z-index: 300;
+      display: none;
+      flex-direction: column;
+      background: rgba(28, 28, 26, 0.92);
+    }
+
+    .receipt-lightbox.open {
+      display: flex;
+    }
+
+    .receipt-lightbox-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      padding: 0.75rem 1rem;
+      flex-shrink: 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .receipt-lightbox-toolbar button,
+    .receipt-lightbox-toolbar a {
+      font-family: "DM Sans", system-ui, sans-serif;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: #fafaf7;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 6px;
+      padding: 0.45rem 0.75rem;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+
+    .receipt-lightbox-toolbar button:hover,
+    .receipt-lightbox-toolbar a:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .receipt-lightbox-toolbar button:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    .receipt-lightbox-zoom-label {
+      min-width: 3.5rem;
+      text-align: center;
+      font-size: 0.8rem;
+      color: rgba(250, 250, 247, 0.85);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .receipt-lightbox-close {
+      margin-left: auto;
+      font-size: 1.1rem;
+      line-height: 1;
+      padding: 0.35rem 0.65rem;
+    }
+
+    .receipt-lightbox-viewport {
+      flex: 1;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      touch-action: none;
+      cursor: grab;
+    }
+
+    .receipt-lightbox-viewport.dragging {
+      cursor: grabbing;
+    }
+
+    .receipt-lightbox-viewport img {
+      width: auto;
+      height: auto;
+      max-width: none;
+      max-height: none;
+      transform-origin: center center;
+      transition: transform 0.15s ease-out;
+      border-radius: 4px;
+      box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
+      user-select: none;
+      -webkit-user-drag: none;
+      pointer-events: none;
+    }
+
+    .receipt-lightbox-viewport.dragging img {
+      transition: none;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    label.field-label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--muted);
+      margin-bottom: 0.45rem;
+      letter-spacing: 0.02em;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 110px;
+      padding: 0.85rem 1rem;
+      font-family: "DM Sans", system-ui, sans-serif;
+      font-size: 0.9rem;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--bg);
+      resize: vertical;
+      color: var(--ink);
+      transition: border-color 0.2s;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: #b8b6ae;
+    }
+
+    .btn-calculate {
+      width: 100%;
+      margin-top: 1rem;
+      padding: 0.95rem 1.25rem;
+      font-family: "DM Sans", system-ui, sans-serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      color: #fafaf7;
+      background: var(--accent);
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: background 0.2s, opacity 0.2s;
+    }
+
+    .btn-calculate:hover:not(:disabled) {
+      background: var(--accent-hover);
+    }
+
+    .btn-calculate:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .loading {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 1.25rem;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .loading.visible {
+      display: flex;
+    }
+
+    .dots span {
+      display: inline-block;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--muted);
+      animation: pulse 1.2s ease-in-out infinite;
+    }
+
+    .dots span:nth-child(2) { animation-delay: 0.15s; }
+    .dots span:nth-child(3) { animation-delay: 0.3s; }
+
+    @keyframes pulse {
+      0%, 80%, 100% { opacity: 0.25; transform: scale(0.85); }
+      40% { opacity: 1; transform: scale(1); }
+    }
+
+    .banner {
+      padding: 0.85rem 1rem;
+      border-radius: var(--radius);
+      font-size: 0.85rem;
+      margin-bottom: 1rem;
+      line-height: 1.45;
+    }
+
+    .banner-error {
+      background: var(--error-bg);
+      border: 1px solid var(--error-border);
+      color: var(--error-ink);
+    }
+
+    .banner-reconcile {
+      background: var(--error-bg);
+      border: 1px solid var(--error-border);
+      color: var(--error-ink);
+    }
+
+    .banner-flags {
+      background: var(--warn-bg);
+      border: 1px solid var(--warn-border);
+      color: var(--warn-ink);
+    }
+
+    .banner-flags .flag-line {
+      display: block;
+      margin-top: 0.35rem;
+    }
+
+    .banner-flags .flag-line:first-child {
+      margin-top: 0;
+    }
+
+    #results {
+      display: none;
+    }
+
+    #results.visible {
+      display: block;
+    }
+
+    .person-card {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 1.15rem 1.25rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .person-card h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.65rem;
+    }
+
+    .item-list {
+      list-style: none;
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 0.85rem;
+    }
+
+    .item-list li {
+      padding: 0.2rem 0;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+    }
+
+    .breakdown {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.78rem;
+    }
+
+    .breakdown th {
+      text-align: left;
+      font-weight: 500;
+      color: var(--muted);
+      padding: 0.35rem 0.5rem 0.35rem 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .breakdown th:not(:first-child),
+    .breakdown td:not(:first-child) {
+      text-align: right;
+    }
+
+    .breakdown td {
+      padding: 0.45rem 0.5rem 0.45rem 0;
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+
+    .amount-cell {
+      display: inline-flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 0.3rem;
+    }
+
+    .badge-low-conf {
+      font-family: "DM Sans", system-ui, sans-serif;
+      font-size: 0.6rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--low-conf);
+      background: var(--low-conf-bg);
+      border: 1px solid #fed7aa;
+      border-radius: 3px;
+      padding: 0.1rem 0.3rem;
+      white-space: nowrap;
+    }
+
+    .summary-line {
+      text-align: center;
+      padding: 1rem;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .summary-line strong {
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+      font-weight: 500;
+      color: var(--ink);
+      font-size: 1.05rem;
+    }
+
+    .paid-by {
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 1rem;
+    }
+
+    .settle-up {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+      margin-bottom: 1rem;
+    }
+
+    .settle-up h4 {
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 0.65rem;
+    }
+
+    .settle-line {
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+      font-size: 0.9rem;
+      padding: 0.35rem 0;
+      text-align: center;
+    }
+
+    .settle-line .arrow {
+      color: var(--muted);
+      margin: 0 0.35rem;
+    }
+
+    .assumptions {
+      margin-top: 0.5rem;
+    }
+
+    .assumptions summary {
+      font-size: 0.78rem;
+      color: var(--muted);
+      cursor: pointer;
+      user-select: none;
+      list-style: none;
+    }
+
+    .assumptions summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .assumptions summary::before {
+      content: "▸ ";
+    }
+
+    .assumptions[open] summary::before {
+      content: "▾ ";
+    }
+
+    .assumptions ul {
+      margin-top: 0.5rem;
+      padding-left: 1.1rem;
+      font-size: 0.78rem;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .assumptions li {
+      margin-bottom: 0.25rem;
+    }
+
+    .empty-settle {
+      font-size: 0.85rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .btn-test-cases {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 100;
+      padding: 0.5rem 0.85rem;
+      font-family: "DM Sans", system-ui, sans-serif;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--ink);
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .btn-test-cases:hover {
+      background: var(--bg);
+      border-color: #b8b6ae;
+    }
+
+    .test-cases-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: rgba(28, 28, 26, 0.35);
+      display: none;
+      align-items: flex-start;
+      justify-content: flex-end;
+      padding: 3.5rem 1rem 1rem;
+    }
+
+    .test-cases-backdrop.open {
+      display: flex;
+    }
+
+    .test-cases-panel {
+      width: min(360px, 100%);
+      max-height: min(80vh, 560px);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: 0 8px 32px rgba(28, 28, 26, 0.12);
+    }
+
+    .test-cases-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid var(--line);
+      flex-shrink: 0;
+    }
+
+    .test-cases-header h2 {
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .test-cases-close {
+      background: none;
+      border: none;
+      font-size: 1.25rem;
+      line-height: 1;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 0.15rem 0.35rem;
+    }
+
+    .test-cases-list {
+      overflow-y: auto;
+      padding: 0.5rem;
+    }
+
+    .test-case-item {
+      display: block;
+      width: 100%;
+      text-align: left;
+      padding: 0.7rem 0.75rem;
+      margin-bottom: 0.35rem;
+      font-family: inherit;
+      background: var(--bg);
+      border: 1px solid transparent;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+
+    .test-case-item:hover {
+      border-color: var(--line);
+      background: #f5f4f0;
+    }
+
+    .test-case-item strong {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    .test-case-item span {
+      display: block;
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-top: 0.2rem;
+    }
+
+    .test-cases-section {
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #9a9a94;
+      padding: 0.5rem 0.75rem 0.35rem;
+      margin-top: 0.5rem;
+    }
+
+    .test-cases-section:first-child {
+      margin-top: 0;
+    }
+
+    .test-toast {
+      position: fixed;
+      top: 3.25rem;
+      right: 1rem;
+      z-index: 150;
+      max-width: 280px;
+      padding: 0.6rem 0.85rem;
+      font-size: 0.78rem;
+      background: var(--ink);
+      color: #fafaf7;
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s;
+    }
+
+    .test-toast.visible {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <button type="button" class="btn-test-cases" id="btn-test-cases" aria-haspopup="dialog">
+    Test cases
+  </button>
+
+  <div class="test-cases-backdrop" id="test-cases-backdrop" hidden>
+    <div
+      class="test-cases-panel"
+      role="dialog"
+      aria-labelledby="test-cases-title"
+      aria-modal="true"
+    >
+      <div class="test-cases-header">
+        <h2 id="test-cases-title">Test cases</h2>
+        <button type="button" class="test-cases-close" id="test-cases-close" aria-label="Close">
+          ×
+        </button>
+      </div>
+      <div class="test-cases-list" id="test-cases-list"></div>
+    </div>
+  </div>
+
+  <div class="test-toast" id="test-toast" role="status" aria-live="polite"></div>
+
+  <div
+    class="receipt-lightbox"
+    id="receipt-lightbox"
+    hidden
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="receipt-lightbox-title"
+  >
+    <p id="receipt-lightbox-title" class="sr-only">Receipt image viewer</p>
+    <div class="receipt-lightbox-toolbar">
+      <button type="button" id="receipt-zoom-out" aria-label="Zoom out">−</button>
+      <span class="receipt-lightbox-zoom-label" id="receipt-zoom-label">100%</span>
+      <button type="button" id="receipt-zoom-in" aria-label="Zoom in">+</button>
+      <button type="button" id="receipt-zoom-reset" aria-label="Reset zoom">Fit</button>
+      <a href="#" id="receipt-download" download="receipt.jpg">Download</a>
+      <button type="button" class="receipt-lightbox-close" id="receipt-lightbox-close" aria-label="Close">
+        ×
+      </button>
+    </div>
+    <div class="receipt-lightbox-viewport" id="receipt-lightbox-viewport">
+      <img id="receipt-lightbox-img" alt="Receipt full size" />
+    </div>
+  </div>
+
+  <div class="wrap">
+    <header class="header">
+      <h1>fair split</h1>
+      <p>upload a receipt · describe who ate what · split fairly</p>
+    </header>
+
+    <div id="error-banner" class="banner banner-error" hidden></div>
+
+    <section class="card">
+      <div class="upload-zone" id="upload-zone" role="button" tabindex="0" aria-label="Upload receipt">
+        <input type="file" id="file-input" accept="image/*" />
+        <div class="label">drop receipt here or click to upload</div>
+        <div class="hint">jpg · png · heic</div>
+        <div class="thumb-wrap" id="thumb-wrap">
+          <img id="thumb" alt="Receipt preview" />
+          <p class="thumb-hint" id="thumb-hint" hidden>Click to open · drag to pan · zoom or download</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <label class="field-label" for="description">who had what?</label>
+      <textarea
+        id="description"
+        placeholder="Aman had the paneer tikka. Priya and Rohan shared the dal makhani. The rest of us split the garlic naan and sweet lassi. Priya paid for everyone."
+      ></textarea>
+      <button type="button" class="btn-calculate" id="calculate-btn" disabled>
+        Calculate
+      </button>
+    </section>
+
+    <div class="loading" id="loading" aria-live="polite">
+      <div class="dots" aria-hidden="true">
+        <span></span><span></span><span></span>
+      </div>
+      <span id="loadingText">reading receipt… (usually 5–30s)</span>
+    </div>
+
+    <section id="results" aria-live="polite">
+      <div id="reconcile-banner" class="banner banner-reconcile" hidden></div>
+      <div id="flags-banner" class="banner banner-flags" hidden></div>
+      <div id="person-cards"></div>
+
+      <div class="card summary-line">
+        grand total · <strong id="grand-total">₹0</strong>
+      </div>
+
+      <p class="paid-by" id="paid-by"></p>
+
+      <div class="settle-up" id="settle-section">
+        <h4>settle up</h4>
+        <div id="settle-list"></div>
+      </div>
+
+      <details class="assumptions" id="assumptions-block" hidden>
+        <summary>assumptions</summary>
+        <ul id="assumptions-list"></ul>
+      </details>
+    </section>
+  </div>
+
+  <script>
+    // TODO: after deploying backend to Render, replace localhost with your Render URL
+    // e.g. window.API_BASE = "https://fair-split-api.onrender.com"
+    // Empty string = same origin when opened at http://127.0.0.1:8001/
+    const API_BASE =
+      window.API_BASE ||
+      (location.protocol === "file:" ? "http://127.0.0.1:8001" : "");
+
+    const uploadZone = document.getElementById("upload-zone");
+    const fileInput = document.getElementById("file-input");
+    const thumbWrap = document.getElementById("thumb-wrap");
+    const thumb = document.getElementById("thumb");
+    const descriptionEl = document.getElementById("description");
+    const calculateBtn = document.getElementById("calculate-btn");
+    const loadingEl = document.getElementById("loading");
+    const resultsEl = document.getElementById("results");
+    const errorBanner = document.getElementById("error-banner");
+    const reconcileBanner = document.getElementById("reconcile-banner");
+    const flagsBanner = document.getElementById("flags-banner");
+    const personCards = document.getElementById("person-cards");
+    const grandTotalEl = document.getElementById("grand-total");
+    const paidByEl = document.getElementById("paid-by");
+    const settleList = document.getElementById("settle-list");
+    const assumptionsBlock = document.getElementById("assumptions-block");
+    const assumptionsList = document.getElementById("assumptions-list");
+
+    let receiptBase64 = "";
+    let testCases = [];
+
+    const btnTestCases = document.getElementById("btn-test-cases");
+    const testCasesBackdrop = document.getElementById("test-cases-backdrop");
+    const testCasesList = document.getElementById("test-cases-list");
+    const testCasesClose = document.getElementById("test-cases-close");
+    const testToast = document.getElementById("test-toast");
+    const thumbHint = document.getElementById("thumb-hint");
+    const receiptLightbox = document.getElementById("receipt-lightbox");
+    const receiptLightboxImg = document.getElementById("receipt-lightbox-img");
+    const receiptLightboxViewport = document.getElementById("receipt-lightbox-viewport");
+    const receiptZoomLabel = document.getElementById("receipt-zoom-label");
+    const receiptZoomInBtn = document.getElementById("receipt-zoom-in");
+    const receiptZoomOutBtn = document.getElementById("receipt-zoom-out");
+    const receiptZoomResetBtn = document.getElementById("receipt-zoom-reset");
+    const receiptDownloadLink = document.getElementById("receipt-download");
+    const receiptLightboxClose = document.getElementById("receipt-lightbox-close");
+    let toastTimer = null;
+    let receiptZoom = 1;
+    let receiptPanX = 0;
+    let receiptPanY = 0;
+    let receiptDragging = false;
+    let receiptDragPointerId = null;
+    let receiptDragStartX = 0;
+    let receiptDragStartY = 0;
+    let receiptPanStartX = 0;
+    let receiptPanStartY = 0;
+    let receiptDidDrag = false;
+    let receiptDownloadName = "receipt.jpg";
+    const RECEIPT_ZOOM_MIN = 0.25;
+    const RECEIPT_ZOOM_MAX = 4;
+    const RECEIPT_ZOOM_STEP = 0.25;
+
+    uploadZone.addEventListener("click", (e) => {
+      if (e.target.closest("#thumb-wrap")) return;
+      fileInput.click();
+    });
+    uploadZone.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        fileInput.click();
+      }
+    });
+
+    fileInput.addEventListener("change", () => {
+      const file = fileInput.files[0];
+      if (file) handleFile(file);
+    });
+
+    uploadZone.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      uploadZone.classList.add("dragover");
+    });
+    uploadZone.addEventListener("dragleave", () => {
+      uploadZone.classList.remove("dragover");
+    });
+    uploadZone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      uploadZone.classList.remove("dragover");
+      const file = e.dataTransfer.files[0];
+      if (file && file.type.startsWith("image/")) handleFile(file);
+    });
+
+    descriptionEl.addEventListener("input", updateCalculateState);
+
+    calculateBtn.addEventListener("click", calculate);
+
+    function setReceiptFromDataUrl(dataUrl, downloadName) {
+      const base64 = dataUrl.includes(",") ? dataUrl.split(",")[1] : dataUrl;
+      receiptBase64 = base64;
+      thumb.src = dataUrl;
+      thumbWrap.classList.add("visible");
+      thumbHint.hidden = false;
+      if (downloadName) receiptDownloadName = downloadName;
+      updateCalculateState();
+    }
+
+    function handleFile(file) {
+      receiptDownloadName = file.name || "receipt.jpg";
+      const reader = new FileReader();
+      reader.onload = () => setReceiptFromDataUrl(reader.result);
+      reader.readAsDataURL(file);
+    }
+
+    function applyReceiptTransform() {
+      receiptLightboxImg.style.transform = `translate(${receiptPanX}px, ${receiptPanY}px) scale(${receiptZoom})`;
+      receiptZoomLabel.textContent = `${Math.round(receiptZoom * 100)}%`;
+      receiptZoomOutBtn.disabled = receiptZoom <= RECEIPT_ZOOM_MIN;
+      receiptZoomInBtn.disabled = receiptZoom >= RECEIPT_ZOOM_MAX;
+    }
+
+    function fitReceiptToViewport() {
+      const img = receiptLightboxImg;
+      const vp = receiptLightboxViewport;
+      const nw = img.naturalWidth;
+      const nh = img.naturalHeight;
+      if (!nw || !nh || vp.clientWidth < 1 || vp.clientHeight < 1) return;
+
+      const style = getComputedStyle(vp);
+      const padX =
+        parseFloat(style.paddingLeft) + parseFloat(style.paddingRight);
+      const padY =
+        parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
+      const availableW = vp.clientWidth - padX;
+      const availableH = vp.clientHeight - padY;
+
+      const scale = Math.min(availableW / nw, availableH / nh, 1);
+      receiptZoom = Math.min(
+        RECEIPT_ZOOM_MAX,
+        Math.max(RECEIPT_ZOOM_MIN, scale)
+      );
+      receiptPanX = 0;
+      receiptPanY = 0;
+      applyReceiptTransform();
+    }
+
+    function scheduleReceiptFit() {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(fitReceiptToViewport);
+      });
+    }
+
+    function openReceiptLightbox() {
+      if (!thumb.src) return;
+      receiptLightboxImg.src = thumb.src;
+      receiptDownloadLink.href = thumb.src;
+      receiptDownloadLink.download = receiptDownloadName;
+      receiptPanX = 0;
+      receiptPanY = 0;
+      receiptZoom = 1;
+      applyReceiptTransform();
+      receiptLightbox.hidden = false;
+      receiptLightbox.classList.add("open");
+      document.body.style.overflow = "hidden";
+
+      if (receiptLightboxImg.complete && receiptLightboxImg.naturalWidth > 0) {
+        scheduleReceiptFit();
+      } else {
+        receiptLightboxImg.onload = () => {
+          receiptLightboxImg.onload = null;
+          scheduleReceiptFit();
+        };
+      }
+    }
+
+    function closeReceiptLightbox() {
+      receiptLightbox.classList.remove("open");
+      receiptLightbox.hidden = true;
+      document.body.style.overflow = "";
+    }
+
+    function setReceiptZoom(next) {
+      receiptZoom = Math.min(
+        RECEIPT_ZOOM_MAX,
+        Math.max(RECEIPT_ZOOM_MIN, next)
+      );
+      applyReceiptTransform();
+    }
+
+    function endReceiptDrag(e) {
+      if (!receiptDragging) return;
+      receiptDragging = false;
+      receiptDragPointerId = null;
+      receiptLightboxViewport.classList.remove("dragging");
+      if (e && receiptLightboxViewport.hasPointerCapture(e.pointerId)) {
+        receiptLightboxViewport.releasePointerCapture(e.pointerId);
+      }
+    }
+
+    receiptLightboxViewport.addEventListener("pointerdown", (e) => {
+      if (!receiptLightbox.classList.contains("open") || e.button !== 0) return;
+      receiptDragging = true;
+      receiptDragPointerId = e.pointerId;
+      receiptDidDrag = false;
+      receiptDragStartX = e.clientX;
+      receiptDragStartY = e.clientY;
+      receiptPanStartX = receiptPanX;
+      receiptPanStartY = receiptPanY;
+      receiptLightboxViewport.classList.add("dragging");
+      receiptLightboxViewport.setPointerCapture(e.pointerId);
+    });
+
+    receiptLightboxViewport.addEventListener("pointermove", (e) => {
+      if (!receiptDragging || e.pointerId !== receiptDragPointerId) return;
+      const dx = e.clientX - receiptDragStartX;
+      const dy = e.clientY - receiptDragStartY;
+      if (Math.abs(dx) > 4 || Math.abs(dy) > 4) receiptDidDrag = true;
+      receiptPanX = receiptPanStartX + dx;
+      receiptPanY = receiptPanStartY + dy;
+      applyReceiptTransform();
+    });
+
+    receiptLightboxViewport.addEventListener("pointerup", endReceiptDrag);
+    receiptLightboxViewport.addEventListener("pointercancel", endReceiptDrag);
+    receiptLightboxViewport.addEventListener("lostpointercapture", () => {
+      receiptDragging = false;
+      receiptLightboxViewport.classList.remove("dragging");
+    });
+
+    thumbWrap.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (thumb.src) openReceiptLightbox();
+    });
+
+    receiptZoomInBtn.addEventListener("click", () =>
+      setReceiptZoom(receiptZoom + RECEIPT_ZOOM_STEP)
+    );
+    receiptZoomOutBtn.addEventListener("click", () =>
+      setReceiptZoom(receiptZoom - RECEIPT_ZOOM_STEP)
+    );
+    receiptZoomResetBtn.addEventListener("click", scheduleReceiptFit);
+    window.addEventListener("resize", () => {
+      if (receiptLightbox.classList.contains("open")) scheduleReceiptFit();
+    });
+    receiptLightboxClose.addEventListener("click", closeReceiptLightbox);
+    receiptLightboxViewport.addEventListener("click", (e) => {
+      if (e.target === receiptLightboxViewport && !receiptDidDrag) {
+        closeReceiptLightbox();
+      }
+      receiptDidDrag = false;
+    });
+    receiptLightboxViewport.addEventListener(
+      "wheel",
+      (e) => {
+        e.preventDefault();
+        const delta = e.deltaY > 0 ? -RECEIPT_ZOOM_STEP : RECEIPT_ZOOM_STEP;
+        setReceiptZoom(receiptZoom + delta);
+      },
+      { passive: false }
+    );
+    receiptDownloadLink.addEventListener("click", (e) => {
+      if (!thumb.src) {
+        e.preventDefault();
+        return;
+      }
+      receiptDownloadLink.href = thumb.src;
+      receiptDownloadLink.download = receiptDownloadName;
+    });
+
+    function showToast(message) {
+      testToast.textContent = message;
+      testToast.classList.add("visible");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => testToast.classList.remove("visible"), 3200);
+    }
+
+    function openTestCasesPanel() {
+      testCasesBackdrop.hidden = false;
+      testCasesBackdrop.classList.add("open");
+    }
+
+    function closeTestCasesPanel() {
+      testCasesBackdrop.classList.remove("open");
+      testCasesBackdrop.hidden = true;
+    }
+
+    async function loadTestCases() {
+      try {
+        const res = await fetch(`${API_BASE}/test-cases`);
+        if (!res.ok) return;
+        const data = await res.json();
+        testCases = data.cases || [];
+        renderTestCasesList();
+      } catch {
+        /* offline or old server — panel stays empty */
+      }
+    }
+
+    function renderTestCasesList() {
+      let html = "";
+      let lastGroup = null;
+      for (const tc of testCases) {
+        if (tc.group && tc.group !== lastGroup) {
+          const heading =
+            tc.group === "assignment"
+              ? "Assignment bills (R1–R4)"
+              : "Scenarios 1–10 (in order)";
+          html += `<div class="test-cases-section">${escapeHtml(heading)}</div>`;
+          lastGroup = tc.group;
+        }
+        html += `
+        <button type="button" class="test-case-item" data-id="${tc.id}">
+          <strong>${escapeHtml(tc.label)}</strong>
+          <span>${escapeHtml(tc.subtitle || "")}</span>
+        </button>`;
+      }
+      testCasesList.innerHTML = html;
+
+      testCasesList.querySelectorAll(".test-case-item").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const id = Number(btn.getAttribute("data-id"));
+          const tc = testCases.find((c) => c.id === id);
+          if (tc) applyTestCase(tc);
+        });
+      });
+    }
+
+    async function applyTestCase(tc) {
+      closeTestCasesPanel();
+      hideError();
+      try {
+        const imageUrl = `${API_BASE}/test-receipts/${encodeURIComponent(tc.image)}`;
+        const res = await fetch(imageUrl);
+        if (!res.ok) {
+          showError(`Could not load ${tc.image} — is the server running?`);
+          return;
+        }
+        const blob = await res.blob();
+        const reader = new FileReader();
+        reader.onload = () => {
+          setReceiptFromDataUrl(reader.result, tc.image || "receipt.jpg");
+          descriptionEl.value = tc.description;
+          updateCalculateState();
+          showToast(`${tc.label} loaded — tap Calculate`);
+          descriptionEl.focus();
+        };
+        reader.readAsDataURL(blob);
+      } catch (err) {
+        showError(err.message || "Failed to load test receipt");
+      }
+    }
+
+    btnTestCases.addEventListener("click", openTestCasesPanel);
+    testCasesClose.addEventListener("click", closeTestCasesPanel);
+    testCasesBackdrop.addEventListener("click", (e) => {
+      if (e.target === testCasesBackdrop) closeTestCasesPanel();
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key !== "Escape") return;
+      if (receiptLightbox.classList.contains("open")) {
+        closeReceiptLightbox();
+        return;
+      }
+      closeTestCasesPanel();
+    });
+
+    loadTestCases();
+
+    function updateCalculateState() {
+      const ready =
+        receiptBase64.length > 0 && descriptionEl.value.trim().length > 0;
+      calculateBtn.disabled = !ready;
+    }
+
+    function formatInr(amount) {
+      const n = Number(amount) || 0;
+      const prefix = n < 0 ? "−₹" : "₹";
+      return prefix + Math.abs(n).toLocaleString("en-IN");
+    }
+
+    function parseLowConfidenceTexts(flags) {
+      return (flags || [])
+        .filter((f) => f.startsWith("Low confidence OCR:"))
+        .map((f) => {
+          const m = f.match(/Low confidence OCR: "([^"]+)"/);
+          return m ? m[1] : null;
+        })
+        .filter(Boolean);
+    }
+
+    function isLowConfidenceAmount(amount, lowConfTexts) {
+      const str = String(Math.abs(Number(amount) || 0));
+      return lowConfTexts.some((text) => {
+        const cleaned = text.replace(/[^\d.]/g, "");
+        return (
+          text.includes(str) ||
+          (cleaned && cleaned === str) ||
+          text.replace(/[^\d]/g, "").includes(str)
+        );
+      });
+    }
+
+    function isLowConfidenceItem(itemName, lowConfTexts) {
+      const lower = itemName.toLowerCase();
+      return lowConfTexts.some(
+        (text) =>
+          lower.includes(text.toLowerCase()) ||
+          text.toLowerCase().includes(lower.split(" (")[0])
+      );
+    }
+
+    function amountHtml(amount, lowConfTexts) {
+      const showBadge = isLowConfidenceAmount(amount, lowConfTexts);
+      const badge = showBadge
+        ? '<span class="badge-low-conf" title="OCR low confidence">?</span>'
+        : "";
+      return `<span class="amount-cell">${formatInr(amount)}${badge}</span>`;
+    }
+
+    function hideError() {
+      errorBanner.hidden = true;
+      errorBanner.textContent = "";
+    }
+
+    function showError(message) {
+      errorBanner.textContent = message;
+      errorBanner.hidden = false;
+      resultsEl.classList.remove("visible");
+    }
+
+    function setLoading(on) {
+      loadingEl.classList.toggle("visible", on);
+      calculateBtn.disabled = on || !receiptBase64 || !descriptionEl.value.trim();
+    }
+
+    async function calculate() {
+      hideError();
+      reconcileBanner.hidden = true;
+      flagsBanner.hidden = true;
+      resultsEl.classList.remove("visible");
+
+      const description = descriptionEl.value.trim();
+      if (!receiptBase64 || !description) return;
+
+      setLoading(true);
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 120000);
+
+      try {
+        const res = await fetch(`${API_BASE}/split`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          signal: controller.signal,
+          body: JSON.stringify({
+            receipt_base64: receiptBase64,
+            description,
+          }),
+        });
+        clearTimeout(timeoutId);
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          let errMsg = data.error || `Request failed (${res.status})`;
+          if (data.items_on_bill?.length) {
+            errMsg +=
+              "\n\nItems on bill: " +
+              data.items_on_bill.join(", ");
+          }
+          if (data.assignments && Object.keys(data.assignments).length) {
+            errMsg += "\nAssignments: " + JSON.stringify(data.assignments);
+          }
+          if (data.shared && Object.keys(data.shared).length) {
+            errMsg += "\nShared: " + JSON.stringify(data.shared);
+          }
+          const extra =
+            data.flags && data.flags.length
+              ? "\n\n" + data.flags.join("\n")
+              : "";
+          showError(errMsg + extra);
+          return;
+        }
+
+        renderResults(data);
+        resultsEl.classList.add("visible");
+        resultsEl.scrollIntoView({ behavior: "smooth", block: "start" });
+      } catch (err) {
+        if (err.name === "AbortError") {
+          showError(
+            "Request timed out after 2 minutes. Check the terminal running uvicorn for errors, then try again."
+          );
+        } else {
+          showError(err.message || "Network error — is the API running?");
+        }
+      } finally {
+        clearTimeout(timeoutId);
+        setLoading(false);
+        updateCalculateState();
+      }
+    }
+
+    function renderResults(data) {
+      const flags = data.flags || [];
+      const lowConfTexts = parseLowConfidenceTexts(flags);
+      const displayFlags = flags.filter((f) => !f.startsWith("Low confidence OCR:"));
+
+      const reconciliation = data.reconciliation || {};
+      const reconcileFlag = displayFlags.find(
+        (f) =>
+          f.includes("Your group's split") ||
+          f.includes("Person totals sum to") ||
+          f.includes("Unassigned bill items")
+      );
+      if (reconciliation.matches_bill === false) {
+        reconcileBanner.textContent =
+          reconcileFlag ||
+          `Your group's split is ₹${reconciliation.sum_of_person_totals || "?"}; bill total is ₹${data.grand_total || "?"}.`;
+        reconcileBanner.hidden = false;
+      } else {
+        reconcileBanner.hidden = true;
+      }
+
+      const bannerFlags = displayFlags.filter(
+        (f) =>
+          f !== reconcileFlag &&
+          !f.includes("Your group's split") &&
+          !f.includes("Person totals sum to")
+      );
+
+      if (bannerFlags.length) {
+        flagsBanner.innerHTML = bannerFlags
+          .map((f) => `<span class="flag-line">${escapeHtml(f)}</span>`)
+          .join("");
+        flagsBanner.hidden = false;
+      } else {
+        flagsBanner.hidden = true;
+      }
+
+      personCards.innerHTML = "";
+      (data.per_person || []).forEach((person) => {
+        const card = document.createElement("article");
+        card.className = "person-card";
+
+        const itemsHtml = (person.items || [])
+          .map((item) => {
+            const badge = isLowConfidenceItem(item, lowConfTexts)
+              ? '<span class="badge-low-conf" title="OCR low confidence">?</span>'
+              : "";
+            return `<li>${escapeHtml(item)}${badge}</li>`;
+          })
+          .join("");
+
+        card.innerHTML = `
+          <h3>${escapeHtml(person.name)}</h3>
+          <ul class="item-list">${itemsHtml || "<li>—</li>"}</ul>
+          <table class="breakdown">
+            <thead>
+              <tr>
+                <th></th>
+                <th>food</th>
+                <th>service</th>
+                <th>discount</th>
+                <th>tax</th>
+                <th>total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>total</td>
+                <td>${amountHtml(person.subtotal, lowConfTexts)}</td>
+                <td>${amountHtml(person.service_share, lowConfTexts)}</td>
+                <td>${amountHtml(person.discount_share, lowConfTexts)}</td>
+                <td>${amountHtml(person.tax_share, lowConfTexts)}</td>
+                <td>${amountHtml(person.total, lowConfTexts)}</td>
+              </tr>
+            </tbody>
+          </table>
+        `;
+        personCards.appendChild(card);
+      });
+
+      grandTotalEl.textContent = formatInr(data.grand_total);
+
+      if (data.paid_by) {
+        paidByEl.textContent = `Paid by: ${data.paid_by}`;
+        paidByEl.hidden = false;
+      } else {
+        paidByEl.textContent = "Paid by: not stated";
+        paidByEl.hidden = false;
+      }
+
+      const settleUp = data.settle_up || [];
+      if (settleUp.length) {
+        settleList.innerHTML = settleUp
+          .map(
+            (s) =>
+              `<div class="settle-line">${escapeHtml(s.from)} <span class="arrow">→</span> ${escapeHtml(s.to)} ${amountHtml(s.amount, lowConfTexts)}</div>`
+          )
+          .join("");
+      } else {
+        settleList.innerHTML =
+          '<p class="empty-settle">nothing to settle</p>';
+      }
+
+      const assumptions = data.assumptions || [];
+      if (assumptions.length) {
+        assumptionsList.innerHTML = assumptions
+          .map((a) => `<li>${escapeHtml(a)}</li>`)
+          .join("");
+        assumptionsBlock.hidden = false;
+      } else {
+        assumptionsBlock.hidden = true;
+      }
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement("div");
+      div.textContent = str;
+      return div.innerHTML;
+    }
+  </script>
+</body>
+</html>

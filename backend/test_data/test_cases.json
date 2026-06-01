@@ -1,0 +1,140 @@
+{
+  "cases": [
+    {
+      "id": 1,
+      "group": "assignment",
+      "scenario": null,
+      "label": "R1 — Brew & Bite Café",
+      "subtitle": "Assignment · Koramangala · ₹1,147",
+      "image": "R1.jpg",
+      "expected_grand_total": 1147,
+      "description": "Three of us — Ravi, Neha, Sameer. Ravi had the cappuccino and the sandwich. Neha had the pasta and the lime soda. Sameer had the brownie. Sameer paid."
+    },
+    {
+      "id": 2,
+      "group": "assignment",
+      "scenario": null,
+      "label": "R2 — Tamarind Kitchen",
+      "subtitle": "Assignment · HSR Layout · ₹1,345",
+      "image": "R2.jpg",
+      "expected_grand_total": 1345,
+      "description": "Four of us: Aman, Priya, Karan, Sara. The Gulab Jamun was shared just by Priya and Karan. Everything else was common to all four. Priya paid."
+    },
+    {
+      "id": 3,
+      "group": "assignment",
+      "scenario": null,
+      "label": "R3 — The Daily Grind",
+      "subtitle": "Assignment · Powai · ₹1,720",
+      "image": "R3.jpg",
+      "expected_grand_total": 1720,
+      "description": "Ishaan, Meera, Rohit. Pizza, pasta and garlic bread shared equally by all three. The two beers were Ishaan and Rohit only. The mojito was Meera's. Rohit paid."
+    },
+    {
+      "id": 4,
+      "group": "assignment",
+      "scenario": null,
+      "label": "R4 — Spice Route Hyderabad",
+      "subtitle": "Assignment · 15% coupon · ₹1,436",
+      "image": "R4.jpg",
+      "expected_grand_total": 1436,
+      "description": "Dev and Nikhil each had a chicken biryani. Anjali had the veg biryani. Farah had the rogan josh. The raita and soft drinks were common to all four. We used a 15% off coupon. Anjali paid."
+    },
+    {
+      "id": 5,
+      "group": "scenario",
+      "scenario": 1,
+      "label": "Scenario 1 — Spice Route Kitchen",
+      "subtitle": "Clean baseline · recipt4.jpg · ₹1,974",
+      "image": "recipt4.jpg",
+      "expected_grand_total": 1974,
+      "description": "Aman had Paneer Tikka, Butter Chicken, and a Masala Coke. Priya and Rohan shared Dal Makhani and Garlic Naan; they shared 2 Sweet Lassis. All three shared Jeera Rice. Priya paid."
+    },
+    {
+      "id": 6,
+      "group": "scenario",
+      "scenario": 2,
+      "label": "Scenario 2 — Oily dhaba",
+      "subtitle": "Vague · smudged · recipt2.PNG",
+      "image": "recipt2.PNG",
+      "description": "Basically three of us — Imran, Sara, and me (Omar). Imran was on the biryani and kebab stuff, Sara had the rotis and drinks, I think we all dipped into the raita? Omar paid, I assume."
+    },
+    {
+      "id": 7,
+      "group": "scenario",
+      "scenario": 3,
+      "label": "Scenario 3 — Punjab Grill",
+      "subtitle": "7 people · rambling · recipt3.jpg",
+      "image": "recipt3.jpg",
+      "expected_grand_total": 3534,
+      "description": "So we were eating this butter chicken and we were like seven people — Arjun, Neha, Vikram, Priya, Dev, Kavya, and Rohan — and honestly most of the naan and rice was for everyone, but Vikram and Dev kinda hogged the beers, and Neha and Priya shared the gulab jamun, Arjun had the paneer dish to himself I think? Rohan paid the whole thing."
+    },
+    {
+      "id": 8,
+      "group": "scenario",
+      "scenario": 4,
+      "label": "Scenario 4 — Café typos",
+      "subtitle": "Same bill as R1 · informal wording",
+      "image": "R1.jpg",
+      "expected_grand_total": 1147,
+      "description": "Three of us — Ravi, Neha, Sameer. Ravi had capuccino + sandwhich. Neha pasta & lime soda. Sameer brownie. Sameer paid thx"
+    },
+    {
+      "id": 9,
+      "group": "scenario",
+      "scenario": 5,
+      "label": "Scenario 5 — Pub + tip",
+      "subtitle": "Hoppy Taproom · recipt5.jpg · ₹3,543",
+      "image": "recipt5.jpg",
+      "expected_grand_total": 3543,
+      "description": "Four friends: Mia, Leo, Zoe, Sam. Mia and Leo shared the fish and chips. Zoe had the burger. Beers were for all four. Sam had both mocktails alone. The rest of us split onion rings. Leo paid. We left a 200 tip."
+    },
+    {
+      "id": 10,
+      "group": "scenario",
+      "scenario": 6,
+      "label": "Scenario 6 — Handwritten",
+      "subtitle": "Street food · vague payer · recipt6.jpg",
+      "image": "recipt6.jpg",
+      "expected_grand_total": 520,
+      "description": "Me and Raj and Anu, we all had dosas and vadas, coffee was mostly Raj and me. Someone paid cash, not sure who."
+    },
+    {
+      "id": 11,
+      "group": "scenario",
+      "scenario": 7,
+      "label": "Scenario 7 — Thali",
+      "subtitle": "Same pattern as R2 · recipt7.PNG · ₹1,345",
+      "image": "recipt7.PNG",
+      "expected_grand_total": 1345,
+      "description": "Four of us: Aman, Priya, Karan, Sara. Gulab Jamun only Priya and Karan. Everything else common to all four. Priya paid."
+    },
+    {
+      "id": 12,
+      "group": "scenario",
+      "scenario": 8,
+      "label": "Scenario 8 — Corporate canteen",
+      "subtitle": "10% discount · 5 people · recipt8.jpg",
+      "image": "recipt8.jpg",
+      "description": "Five colleagues from the biryani team — only Dev, Nikhil, and Asha ate chicken biryani (one each, there were three on the bill). Everyone had a thali. Drinks split among all five: Dev, Nikhil, Asha, Meera, Ritu. Meera paid."
+    },
+    {
+      "id": 13,
+      "group": "scenario",
+      "scenario": 9,
+      "label": "Scenario 9 — Banquet",
+      "subtitle": "8 guests · long bill · recipt9.jpg",
+      "image": "recipt9.jpg",
+      "description": "Ok so eight of us — list is Amit, Beena, Chris, Diya, Eshan, Farah, Gaurav, Hina — tikka and dal was for everyone, naan and rice definitely everyone, ice cream only the four girls Beena Diya Farah Hina, drinks split all eight, Chris had extra chicken tikka portion? Gaurav paid."
+    },
+    {
+      "id": 14,
+      "group": "scenario",
+      "scenario": 10,
+      "label": "Scenario 10 — Coastal Catch",
+      "subtitle": "Faded · ambiguous payer · recipt10.PNG",
+      "image": "recipt10.PNG",
+      "description": "There were like five of us but only three ordered food — Nisha had the prawns, Rahul and I (Kiran) shared the fish curry and apps, coconuts were just for Nisha Rahul and me. Someone else paid, maybe Rahul?"
+    }
+  ]
+}

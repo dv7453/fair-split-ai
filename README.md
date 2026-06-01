@@ -59,9 +59,19 @@ python smoke_test.py test_data/receipts/R1.jpg
 
 ## Deploy (Render)
 
-1. Push to GitHub; connect repo on [render.com](https://render.com) (uses `render.yaml`).
-2. Set `GROQ_API_KEY` in environment variables; keep `USE_VISION=1`.
-3. If Render picks Python 3.14 and the build fails on Pillow, add env var `PYTHON_VERSION` = `3.11.9` (or rely on root `runtime.txt`).
+**Dashboard settings** (must match):
+
+| Field | Value |
+|-------|--------|
+| Root Directory | *(empty)* |
+| Build Command | `pip install -r backend/requirements-deploy.txt` |
+| Start Command | `bash start.sh` |
+| `PYTHON_VERSION` | `3.11.9` |
+| `GROQ_API_KEY` | your Groq key |
+| `USE_VISION` | `1` |
+
+1. Connect [dv7453/fair-split-ai](https://github.com/dv7453/fair-split-ai) on [render.com](https://render.com).
+2. Add the environment variables above (Render ignores `runtime.txt` unless `PYTHON_VERSION` is set).
 3. Open `https://<your-service>.onrender.com/` — UI is served from the API root.
 
 Health check: `GET /health`

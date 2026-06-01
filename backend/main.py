@@ -21,9 +21,8 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from ocr_engine import create_ocr_engine, run_ocr
 from parser import VISION_MODEL, parse_bill, parse_bill_from_image
-from preprocessor import preprocess_image
+from preprocessor import decode_receipt_image, preprocess_image
 from splitter import calculate_split
 from validate import validate_split_response
 
@@ -57,6 +56,8 @@ async def startup_event() -> None:
         app.state.ocr_engine = None
         logger.info("Using vision model %s (set USE_VISION=0 for Tesseract)", VISION_MODEL)
     else:
+        from ocr_engine import create_ocr_engine
+
         app.state.ocr_engine = create_ocr_engine()
 
 
@@ -105,7 +106,10 @@ def split_receipt(body: SplitRequest, request: Request) -> JSONResponse:
 
     try:
         logger.info("split: preprocessing image")
-        image, _preprocess_meta = preprocess_image(receipt_base64)
+        if USE_VISION:
+            image, _preprocess_meta = decode_receipt_image(receipt_base64)
+        else:
+            image, _preprocess_meta = preprocess_image(receipt_base64)
     except Exception as exc:
         return JSONResponse(
             status_code=400,
@@ -125,6 +129,8 @@ def split_receipt(body: SplitRequest, request: Request) -> JSONResponse:
                 "low_confidence_cells": [],
             }
         else:
+            from ocr_engine import run_ocr
+
             ocr_engine = request.app.state.ocr_engine
             logger.info("split: running OCR")
             ocr_result = run_ocr(image, ocr_engine)

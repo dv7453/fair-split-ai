@@ -1,0 +1,6 @@
+# Minimal deps for Render (USE_VISION=1). Full OCR stack: requirements.txt
+fastapi==0.111.0
+uvicorn==0.29.0
+python-dotenv==1.0.1
+groq==0.37.1
+Pillow==11.1.0

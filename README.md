@@ -61,6 +61,7 @@ python smoke_test.py test_data/receipts/R1.jpg
 
 1. Push to GitHub; connect repo on [render.com](https://render.com) (uses `render.yaml`).
 2. Set `GROQ_API_KEY` in environment variables; keep `USE_VISION=1`.
+3. If Render picks Python 3.14 and the build fails on Pillow, add env var `PYTHON_VERSION` = `3.11.9` (or rely on root `runtime.txt`).
 3. Open `https://<your-service>.onrender.com/` — UI is served from the API root.
 
 Health check: `GET /health`

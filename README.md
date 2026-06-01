@@ -1,4 +1,4 @@
-# fare-split-ai
+# Fair-split-ai
 
 Split bills fairly from receipt photos: vision/OCR reads the receipt, Groq parses who ate what, **Python** (`splitter.py`) does all arithmetic.
 
